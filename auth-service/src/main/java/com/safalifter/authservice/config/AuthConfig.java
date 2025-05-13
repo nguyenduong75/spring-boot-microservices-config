@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -19,10 +20,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class AuthConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/v1/auth/**").permitAll()
-                .and()
+        return http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/v1/auth/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.disable()) // Sửa lỗi: cấu hình frameOptions rõ ràng
+                )
                 .build();
     }
 
@@ -38,7 +47,7 @@ public class AuthConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().antMatchers(
+        return (web) -> web.ignoring().requestMatchers(
                 "/v1/auth/**",
                 "/swagger-resources/**",
                 "/swagger-ui.html/**",
@@ -53,7 +62,10 @@ public class AuthConfig {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedMethods("*");
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowedOrigins("*")
+                        .maxAge(3600);
             }
         };
     }
