@@ -1,0 +1,108 @@
+name: CI/CD - Multi Service
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  DOCKER_USERNAME: duongnguyen75  # ⚠️ Thay bằng Docker Hub của bạn
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Lặp lại mỗi service dưới đây
+      - name: Build JAR - auth-service
+        run: |
+          chmod +x ./auth-service/mvnw
+          ./auth-service/mvnw -f ./auth-service/pom.xml clean package -DskipTests
+
+      - name: Build Docker Image - auth-service
+        run: docker build -t $DOCKER_USERNAME/auth-service:latest ./auth-service
+
+      - name: Build JAR - user-service
+        run: |
+          chmod +x ./user-service/mvnw
+          ./user-service/mvnw -f ./user-service/pom.xml clean package -DskipTests
+
+      - name: Build Docker Image - user-service
+        run: docker build -t $DOCKER_USERNAME/user-service:latest ./user-service
+
+      - name: Build JAR - job-service
+        run: |
+          chmod +x ./job-service/mvnw
+          ./job-service/mvnw -f ./job-service/pom.xml clean package -DskipTests
+
+      - name: Build Docker Image - job-service
+        run: docker build -t $DOCKER_USERNAME/job-service:latest ./job-service
+
+      - name: Build JAR - gateway
+        run: |
+          chmod +x ./gateway/mvnw
+          ./gateway/mvnw -f ./gateway/pom.xml clean package -DskipTests
+
+      - name: Build Docker Image - gateway
+        run: docker build -t $DOCKER_USERNAME/gateway:latest ./gateway
+
+      - name: Build JAR - eureka-server
+        run: |
+          chmod +x ./eureka-server/mvnw
+          ./eureka-server/mvnw -f ./eureka-server/pom.xml clean package -DskipTests
+
+      - name: Build Docker Image - eureka-server
+        run: docker build -t $DOCKER_USERNAME/eureka-server:latest ./eureka-server
+
+      - name: Build JAR - notification-service
+        run: |
+          chmod +x ./notification-service/mvnw
+          ./notification-service/mvnw -f ./notification-service/pom.xml clean package -DskipTests
+
+      - name: Build Docker Image - notification-service
+        run: docker build -t $DOCKER_USERNAME/notification-service:latest ./notification-service
+
+      - name: Build JAR - file-storage
+        run: |
+          chmod +x ./file-storage/mvnw
+          ./file-storage/mvnw -f ./file-storage/pom.xml clean package -DskipTests
+
+      - name: Build Docker Image - file-storage
+        run: docker build -t $DOCKER_USERNAME/file-storage:latest ./file-storage
+
+      - name: Build JAR - config-server
+        run: |
+          chmod +x ./config-server/mvnw
+          ./config-server/mvnw -f ./config-server/pom.xml clean package -DskipTests
+
+      - name: Build Docker Image - config-server
+        run: docker build -t $DOCKER_USERNAME/config-server:latest ./config-server
+
+      # Push images (chỉ chạy nếu là push, không cần ở pull_request)
+      - name: Login to Docker Hub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push Docker Images
+        if: github.event_name == 'push'
+        run: |
+          docker push $DOCKER_USERNAME/auth-service:latest
+          docker push $DOCKER_USERNAME/user-service:latest
+          docker push $DOCKER_USERNAME/job-service:latest
+          docker push $DOCKER_USERNAME/gateway:latest
+          docker push $DOCKER_USERNAME/eureka-server:latest
+          docker push $DOCKER_USERNAME/notification-service:latest
+          docker push $DOCKER_USERNAME/file-storage:latest
+          docker push $DOCKER_USERNAME/config-server:latest
