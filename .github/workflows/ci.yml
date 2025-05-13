@@ -1,0 +1,33 @@
+name: Build and Test
+
+# Chạy workflow khi có sự kiện push hoặc pull request
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Chạy trên hệ điều hành Ubuntu
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adoptopenjdk'  # Cài đặt JDK từ AdoptOpenJDK
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Upload artifact (JAR file)
+        uses: actions/upload-artifact@v2
+        with:
+          name: jar-file
+          path: target/*.jar
+
