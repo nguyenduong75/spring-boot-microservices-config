@@ -1,46 +1,40 @@
 plugins {
     id 'org.springframework.boot' version '2.7.14'
-    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id 'io.spring.dependency-management' version '1.1.6'
     id 'java'
 }
 
 group = 'com.safalifter'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '17'
+description = 'Eureka Server'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
 repositories {
     mavenCentral()
-}
-
-dependencies {
-    // Spring Cloud Eureka Server
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
-
-    // Test dependencies
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${property('springCloudVersion')}"
-    }
 }
 
 ext {
     springCloudVersion = '2021.0.8'
 }
 
-jar {
-    enabled = true
-    manifest {
-        attributes 'Main-Class': 'com.safalifter.eurekaserver.EurekaServerApplication'
+dependencies {
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
 
-bootJar {
-    enabled = false
-}
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
+springBoot {
+    buildInfo()
 }

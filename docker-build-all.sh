@@ -8,7 +8,7 @@ SERVICES=(
   user-service
   job-service
   notification-service
-  file-storage
+  file-storage``
 )
 
 for service in "${SERVICES[@]}"; do
