@@ -1,0 +1,67 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.14' // Phù hợp với Spring Boot 2.7.14
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE' // Quản lý dependency cho Spring Boot
+    id 'java' // Plugin Java cơ bản
+}
+
+group = 'com.safalifter'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17' // Java 17
+
+repositories {
+    mavenCentral() // Sử dụng Maven Central cho dependency
+}
+
+dependencies {
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Spring Cloud
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+
+    // OpenAPI
+    implementation 'org.springdoc:springdoc-openapi-ui:1.6.15'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Test dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    // JJWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${property('springCloudVersion')}"
+    }
+}
+
+ext {
+    springCloudVersion = '2021.0.8' // Phiên bản Spring Cloud từ pom.xml
+}
+
+jar {
+    enabled = true // Đảm bảo tạo JAR thông thường
+    manifest {
+        attributes 'Main-Class': 'com.safalifter.authservice.AuthServiceApplication' // Sửa nếu class chính khác
+    }
+}
+
+// Tắt Spring Boot plugin để tránh tạo executable JAR (nếu cần JAR thông thường)
+bootJar {
+    enabled = false
+}
+
+// Cấu hình build task
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
